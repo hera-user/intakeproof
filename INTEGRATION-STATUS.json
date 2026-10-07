@@ -1,5 +1,5 @@
 {
-  "version": "0.3.0",
+  "version": "0.4.0",
   "date_utc": "2026-10-07",
   "local_browser_workflow_verified": true,
   "local_cli_workflow_verified": true,
@@ -20,5 +20,8 @@
   "prize_eligibility_claimed": false,
   "development_assistance": "OpenAI Codex; not counted as in-product sponsor integration",
   "offline_bundle_verifier_implemented": true,
-  "offline_bundle_verifier_cli_verified": true
+  "offline_bundle_verifier_cli_verified": true,
+  "public_record_explorer_verified": true,
+  "public_explorer_execution": "Read-only inspection of actual saved local evidence; no new execution or decisions",
+  "public_explorer_assets_reproducible": true
 }

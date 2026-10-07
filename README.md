@@ -8,6 +8,10 @@ The browser workflow defaults to local rules and local Python. Optional OpenAI R
 
 The [70-second walkthrough](docs/demo.mp4) uses actual app captures, synthetic data and an explicitly illustrative review decision. Its [matching evidence bundle](demo/browser-reviewed/evidence.zip) contains the exact shown result. See [the verification report](TEST-REPORT.txt) and [integration status](INTEGRATION-STATUS.json).
 
+The [public evidence explorer](https://hera-user.github.io/intakeproof/) lets you inspect all ten records, filter the unresolved cases, compare original and resulting fields, and switch between the actual baseline and reviewed example. It reads saved audits from verified evidence bundles; it does not simulate a live run or create new review decisions. Both bundles retain their real run IDs. The baseline is a separate local run of the same original, not the reviewed result's parent run.
+
+To rebuild the explorer's data from its existing bundles, run `python demo/export_explorer.py`. Preview it with `python -m http.server 8767 --bind 127.0.0.1 --directory docs`. Use the local app below to process files or make new review decisions.
+
 ## Run it
 
 Use Python 3.10 or later; development and verification used Python 3.12. No packages need installing.
