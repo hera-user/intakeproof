@@ -6,13 +6,13 @@
   <meta name="csrf-token" content="__CSRF_TOKEN__">
   <title>IntakeProof — every record accounted for</title>
   <link rel="stylesheet" href="/style.css">
-  <script src="/app.js" defer></script>
+  <script src="/app.js?v=0.2.0" defer></script>
 </head>
 <body>
   <header class="topbar">
     <a href="#" class="brand" aria-label="IntakeProof home"><span class="brandmark" aria-hidden="true"><i></i><i></i><i></i></span>IntakeProof<span class="brand-dot">.</span></a>
     <span class="top-context">SUPPLIER INTAKE / SHIPMENT V1</span>
-    <span class="status-pill"><span class="dot"></span>Local execution</span>
+    <span class="status-pill"><span class="dot"></span><span id="runtime-status">Checking runtime</span></span>
   </header>
   <div class="layout">
     <aside class="sidebar">
@@ -28,10 +28,10 @@
         <p class="eyebrow">RUNTIME RECEIPT</p>
         <div class="runtime-row"><span>Planner</span><strong id="runtime-planner">Local rules</strong></div>
         <div class="runtime-row"><span>Executor</span><strong id="runtime-executor">Local Python</strong></div>
-        <div class="runtime-row"><span>Agent37</span><span>Not connected</span></div>
-        <div class="runtime-row"><span>OpenAI</span><span>Not connected</span></div>
-        <p class="small muted">No live sponsor integration is claimed by this local mode.</p>
-        <div class="privacy-note"><span aria-hidden="true">⌑</span><p>Originals stay intact.<br>Files stay on this computer.</p></div>
+        <div class="runtime-row"><span>Agent37</span><span id="runtime-agent37">Not connected</span></div>
+        <div class="runtime-row"><span>OpenAI</span><span id="runtime-openai">Not connected</span></div>
+        <p id="runtime-note" class="small muted">Completed runs have their own receipts.</p>
+        <div class="privacy-note"><span aria-hidden="true">⌑</span><p id="privacy-note">Originals stay intact.</p></div>
       </div>
     </aside>
     <main>
@@ -46,8 +46,9 @@
       <section id="source" class="card source-card">
         <div class="section-heading"><div><p class="eyebrow">01 / SOURCE</p><h2>Start with the file that changed.</h2></div><span class="badge neutral">UTF-8 CSV · up to 2 MiB</span></div>
         <div class="source-grid">
-          <div class="file-drop"><span class="file-icon" aria-hidden="true">↥</span><div><strong>Choose a supplier export</strong><p class="muted small">Comma, semicolon or tab. Original bytes are preserved.</p><label class="button secondary file-button" for="file-input">Choose CSV file</label><input id="file-input" type="file" accept=".csv,.tsv,text/csv,text/tab-separated-values" class="visually-hidden"></div></div>
-          <div class="demo-prompt"><span class="badge synthetic">SYNTHETIC DEMONSTRATION</span><h3>Ten records. Six exceptions.</h3><p class="small muted">Changed headers, mixed dates, duplicate references and one identifier Excel might treat as a formula.</p><button id="load-demo" class="text-button">Explore the example <span aria-hidden="true">↗</span></button></div>
+          <div id="file-drop" class="file-drop"><span class="file-icon" aria-hidden="true">↥</span><div><strong>Choose a supplier export</strong><p class="muted small">Comma, semicolon or tab. Original bytes are preserved.</p><label class="button secondary file-button" for="file-input">Choose CSV file</label><input id="file-input" type="file" accept=".csv,.tsv,text/csv,text/tab-separated-values" class="visually-hidden" disabled></div></div>
+          <div id="provider-disclosure" class="file-drop" hidden><div><strong>Provider mode · synthetic example only</strong><p id="provider-data-note" class="muted small"></p><p id="provider-budget" class="small"></p></div></div>
+          <div class="demo-prompt"><span class="badge synthetic">SYNTHETIC DEMONSTRATION</span><h3>Ten records. Six exceptions.</h3><p class="small muted">Changed headers, mixed dates, duplicate references and one identifier Excel might treat as a formula.</p><button id="load-demo" class="text-button" disabled>Explore the example <span aria-hidden="true">↗</span></button></div>
         </div>
         <div class="source-controls"><label>Separator <select id="delimiter"><option value="auto">Detect automatically</option><option value=",">Comma</option><option value=";">Semicolon</option><option value="&#9;">Tab</option></select></label><p id="file-status" class="small muted">No source loaded.</p></div>
         <div id="source-details" hidden><div class="source-meta"><strong id="source-name"></strong><span id="source-count" class="badge neutral"></span><span id="synthetic-badge" class="badge synthetic" hidden>Synthetic data</span></div><div class="table-scroll"><table id="source-table" class="source-table"><caption>First five original records, unchanged</caption><thead></thead><tbody></tbody></table></div></div>

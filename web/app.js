@@ -2,7 +2,7 @@
 
 const $ = (id) => document.getElementById(id);
 const FIELDS = ["line_id", "sku", "quantity", "ship_date"];
-const state = { inspection: null, result: null, corrections: new Map(), selectedRecord: null, busy: false };
+const state = { inspection: null, result: null, runtime: null, corrections: new Map(), selectedRecord: null, busy: false };
 
 function text(tag, value, className) {
   const element = document.createElement(tag);
@@ -21,8 +21,8 @@ function clearError() { $("error").hidden = true; }
 
 function busy(value, message = "") {
   state.busy = value;
-  $("load-demo").disabled = value;
-  $("file-input").disabled = value;
+  $("load-demo").disabled = value || !state.runtime;
+  $("file-input").disabled = value || !state.runtime || state.runtime.synthetic_only;
   $("run").disabled = value;
   $("activity").hidden = !value;
   $("activity").textContent = message;
@@ -47,11 +47,47 @@ function encodeBytes(buffer) {
   return btoa(binary);
 }
 
+function plannerLabel(receipt) {
+  if (!receipt) return "Manual mapping required";
+  if (receipt.live_model_call === true && receipt.mode === "openai_responses") return "OpenAI proposal · response received";
+  if (receipt.mode === "openai_test_double") return "Simulated model · test double";
+  return receipt.mode === "local_rules" ? "Local rule proposal · no model call" : "Manual mapping · no valid model proposal";
+}
+
+function renderRuntime() {
+  const info = state.runtime;
+  if (!info) return;
+  const planner = state.result?.planner || state.inspection?.planner;
+  const executor = state.result?.executor;
+  const liveModel = planner?.live_model_call === true && planner.mode === "openai_responses";
+  const liveCloud = executor?.mode === "agent37" && executor.cloud_call === true && executor.verified === true;
+  $("runtime-planner").textContent = liveModel ? "OpenAI Responses" : planner?.mode === "openai_test_double" ? "Test double" : planner?.mode === "manual" ? "Manual mapping" : info.planner === "local_rules" ? "Local rules" : "OpenAI configured";
+  $("runtime-executor").textContent = liveCloud ? "Agent37" : executor?.mode === "agent37_test_double" ? "Test double" : executor ? "Local Python" : info.executor === "local" ? "Local Python" : "Agent37 configured";
+  $("runtime-openai").textContent = liveModel ? "Response received" : planner?.mode === "openai_test_double" ? "Simulated" : info.planner === "local_rules" ? "Not connected" : state.inspection?.planning_error ? "Proposal failed" : "Awaiting response";
+  $("runtime-agent37").textContent = liveCloud ? "Replay verified" : executor?.mode === "agent37_test_double" ? "Simulated" : info.executor === "local" ? "Not connected" : "Awaiting cloud run";
+  $("runtime-status").textContent = liveCloud ? "Agent37 run verified" : executor?.mode === "agent37_test_double" ? "Simulated execution" : state.result && !state.result.mapping_approved ? "Local preview" : info.network_transmission && !executor ? "Providers configured" : "Local execution";
+  $("runtime-note").textContent = liveCloud || liveModel ? "Receipts refer to the displayed result. Configuration alone does not verify a call." : "No live sponsor call is verified by the displayed result.";
+  $("privacy-note").textContent = info.network_transmission ? "Originals stay intact. Only the bundled example is allowed in provider mode." : "Originals stay intact. Files stay on this computer.";
+  $("file-drop").hidden = info.synthetic_only;
+  $("provider-disclosure").hidden = !info.synthetic_only;
+  const disclosures = [];
+  if (info.planner === "openai_configured") disclosures.push("Exploring sends the example's headers and two sample records to OpenAI.");
+  if (info.executor === "agent37_configured") disclosures.push("Approving or revalidating sends the example and your review decisions to Agent37. Keep decisions synthetic.");
+  $("provider-data-note").textContent = disclosures.join(" ");
+  $("provider-budget").textContent = `Attempted jobs: ${info.attempted_jobs.planner}/${info.job_limit_per_provider} planning · ${info.attempted_jobs.executor}/${info.job_limit_per_provider} execution. Failures count.`;
+}
+
+async function refreshRuntime() {
+  state.runtime = await api("/api/info");
+  renderRuntime();
+}
+
 async function inspect(source) {
   clearError();
   state.inspection = null;
   state.result = null;
   state.corrections.clear();
+  renderRuntime();
   ["mapping", "results", "evidence", "source-details"].forEach((id) => { $(id).hidden = true; });
   $("date-order").value = "";
   $("date-reason").value = "";
@@ -62,13 +98,13 @@ async function inspect(source) {
     renderSource(result);
     renderMapping(result);
     if (result.preview) renderResult(result.preview, true);
-    $("file-status").textContent = "Original loaded. Review the proposed mapping below.";
+    $("file-status").textContent = result.planning_error ? "Original preserved. Proposal failed; an explicit manual mapping is available." : "Original loaded. Review the proposed mapping below.";
     $("mapping").hidden = false;
     if (result.planning_error) showError(new Error(result.planning_error.message));
   } catch (error) {
     $("file-status").textContent = "File rejected. No partial import was released.";
     showError(error);
-  } finally { busy(false); }
+  } finally { try { await refreshRuntime(); } catch (error) { showError(error); } busy(false); }
 }
 
 function renderSource(data) {
@@ -117,7 +153,7 @@ function renderMapping(data) {
     return item;
   });
   $("mapping-fields").replaceChildren(...items);
-  $("mapping-mode").textContent = data.planner ? "Local rule proposal · no model call" : "Manual mapping required";
+  $("mapping-mode").textContent = plannerLabel(data.planner);
 }
 
 function decisions() {
@@ -137,8 +173,11 @@ async function run() {
     $("run").textContent = "Run reviewed mapping again →";
     $("results").scrollIntoView({ behavior: "smooth", block: "start" });
     return true;
-  } catch (error) { showError(error); return false; }
-  finally { busy(false); }
+  } catch (error) {
+    $("mapping-hint").textContent = "This attempt failed. Any displayed result and download still belong to the previous successful run.";
+    showError(error); return false;
+  }
+  finally { try { await refreshRuntime(); } catch (error) { showError(error); } busy(false); }
 }
 
 function renderResult(result, preview) {
@@ -196,10 +235,12 @@ function renderResult(result, preview) {
     $("download-scope").textContent = `${accepted.length} accepted records in reviewed_import.csv. ${review.length} unresolved records are preserved separately in review.json.`;
     $("source-hash").textContent = result.source.source_sha256;
     $("run-id").textContent = result.run_id;
-    $("executor-description").textContent = `Local Python · ${result.elapsed_ms} ms for parsing, validation and transformation. No cloud call.`;
+    const liveCloud = result.executor.mode === "agent37" && result.executor.cloud_call === true && result.executor.verified === true;
+    $("executor-description").textContent = liveCloud ? `Agent37 · remote result matches deterministic replay. Worker transformation: ${result.elapsed_ms} ms; network and setup excluded.` : result.executor.mode === "agent37_test_double" ? `Simulated Agent37 transport · real worker ran locally. No cloud call.` : `Local Python · ${result.elapsed_ms} ms for parsing, validation and transformation. No cloud call.`;
     $("history-description").textContent = result.parent_run_id ? `New result, linked to ${result.parent_run_id}. ${result.decisions.corrections.length} recorded correction(s).` : "Initial result. Original source preserved.";
     $("audit-preview").textContent = JSON.stringify({ run_id: result.run_id, source: result.source, summary: result.summary, planner: result.planner, executor: result.executor, decisions: result.decisions, claims: result.claims }, null, 2);
   }
+  renderRuntime();
 }
 
 function openCorrection(record) {
@@ -262,3 +303,5 @@ $("correction-form").addEventListener("submit", async (event) => {
   }
 });
 $("correction-reason").addEventListener("input", () => $("correction-reason").setCustomValidity(""));
+
+refreshRuntime().then(() => busy(false)).catch(showError);

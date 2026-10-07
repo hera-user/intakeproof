@@ -39,6 +39,12 @@ class CLITests(unittest.TestCase):
                 self.assertIn("No network call was made", result.stderr)
                 self.assertEqual(list(Path(temp).iterdir()), [])
 
+    def test_provider_browser_start_refuses_unverified_access(self):
+        result = self.call("serve", "--port", "0", "--planner", "openai", "--executor", "agent37")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("No network call was made", result.stderr)
+        self.assertNotIn("running at", result.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

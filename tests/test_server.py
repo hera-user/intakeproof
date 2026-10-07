@@ -13,20 +13,7 @@ from intakeproof.server import make_server
 ROOT = Path(__file__).resolve().parents[1]
 
 
-class ServerTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.server = make_server(0)
-        cls.thread = threading.Thread(target=cls.server.serve_forever, daemon=True)
-        cls.thread.start()
-        cls.base = f"http://127.0.0.1:{cls.server.server_port}"
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.server.shutdown()
-        cls.server.server_close()
-        cls.thread.join(timeout=3)
-
+class HTTPClientMixin:
     def request(self, path, body=None, extra_headers=None):
         headers = {"Origin": self.base, "X-IntakeProof-Token": self.server.app_state.token}
         if body is not None:
@@ -50,6 +37,21 @@ class ServerTests(unittest.TestCase):
         status, _, body = self.request("/api/run", {"session_id": inspection["session_id"], "columns": columns, "mapping_approved": True, "decisions": decisions or {}})
         self.assertEqual(status, 200, body)
         return json.loads(body)
+
+
+class ServerTests(HTTPClientMixin, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.server = make_server(0)
+        cls.thread = threading.Thread(target=cls.server.serve_forever, daemon=True)
+        cls.thread.start()
+        cls.base = f"http://127.0.0.1:{cls.server.server_port}"
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.server.shutdown()
+        cls.server.server_close()
+        cls.thread.join(timeout=3)
 
     def test_browser_workflow_exports_matching_source_and_reviewed_import(self):
         demo, inspection = self.load_demo()

@@ -9,11 +9,41 @@ from .engine import IntakeError, execute, import_csv, json_bytes, make_bundle, r
 from .planner import plan
 
 
+def provider_options(command):
+    command.add_argument("--planner", choices=("local", "openai"), default="local")
+    command.add_argument("--executor", choices=("local", "agent37"), default="local")
+    command.add_argument("--model", help="Explicit OpenAI API model; alternatively INTAKEPROOF_OPENAI_MODEL")
+    command.add_argument("--instance-id", help="Existing authorized Agent37 instance; no instance is provisioned")
+    command.add_argument("--free-access-verified", action="store_true", help="Only after verifying free credits, no card and no automatic charges")
+
+
+def browser_runtime(args):
+    from .server import BrowserRuntime
+    planner_factory, executor_factory = None, None
+    if args.planner == "openai":
+        from .providers import OpenAIPlanner
+        key = os.environ.get("INTAKEPROOF_OPENAI_API_KEY", "")
+        model = args.model or os.environ.get("INTAKEPROOF_OPENAI_MODEL", "")
+        def planner_factory():
+            return OpenAIPlanner(key, model, free_access_verified=args.free_access_verified)
+        planner_factory()  # Validate configuration without any HTTP request.
+    if args.executor == "agent37":
+        from .providers import Agent37Executor
+        agent_key = os.environ.get("INTAKEPROOF_AGENT37_API_KEY", "")
+        instance = args.instance_id or os.environ.get("INTAKEPROOF_AGENT37_INSTANCE_ID", "")
+        def executor_factory():
+            return Agent37Executor(agent_key, instance, free_access_verified=args.free_access_verified)
+        executor_factory()
+    return BrowserRuntime(planner_factory=planner_factory, executor_factory=executor_factory, max_jobs=args.max_provider_jobs)
+
+
 def main():
     parser = argparse.ArgumentParser(description="IntakeProof — reviewed supplier imports with row evidence")
     sub = parser.add_subparsers(dest="command", required=True)
     web = sub.add_parser("serve", help="Start the local browser review interface")
     web.add_argument("--port", type=int, default=8765)
+    provider_options(web)
+    web.add_argument("--max-provider-jobs", type=int, choices=(1, 2, 3), default=3, help="Process-wide limit per provider; failed attempts count")
     for name in ("demo", "run"):
         command = sub.add_parser(name)
         if name == "run":
@@ -23,21 +53,17 @@ def main():
         command.add_argument("--decisions", type=Path)
         command.add_argument("--approve-mapping", action="store_true", help="Record your review of the selected mapping")
         command.add_argument("--delimiter", choices=("auto", "comma", "semicolon", "tab"), default="auto")
-        command.add_argument("--planner", choices=("local", "openai"), default="local")
-        command.add_argument("--executor", choices=("local", "agent37"), default="local")
-        command.add_argument("--model", help="Explicit OpenAI API model; alternatively INTAKEPROOF_OPENAI_MODEL")
-        command.add_argument("--instance-id", help="Existing authorized Agent37 instance; no instance is provisioned")
-        command.add_argument("--free-access-verified", action="store_true", help="Only after verifying free credits, no card and no automatic charges")
+        provider_options(command)
         command.add_argument("--allow-external-data", action="store_true", help="Explicitly permit this input file to be sent to the selected live providers")
     args = parser.parse_args()
-    if args.command == "serve":
-        from .server import serve
-        serve(args.port)
-        return
     try:
         live_requested = args.planner == "openai" or args.executor == "agent37"
         if live_requested and not args.free_access_verified:
             raise IntakeError("free_access_unverified", "Verify free service access before enabling live mode. No network call was made.")
+        if args.command == "serve":
+            from .server import serve
+            serve(args.port, runtime=browser_runtime(args))
+            return
         if live_requested and args.command != "demo" and not args.allow_external_data:
             raise IntakeError("external_data", "Live mode sends source data to the selected providers. Explicitly permit this input file with --allow-external-data.")
         if args.recipe and args.planner != "local":

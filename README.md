@@ -4,7 +4,7 @@
 
 IntakeProof proposes a bounded column mapping, checks it against a shipment import contract, and separates accepted records from unresolved cases. A reviewer can correct a value with a reason, revalidate, and export the import together with its evidence.
 
-The working browser workflow uses local rules and local Python. Optional OpenAI Responses and Agent37 execution adapters are implemented and tested with explicit test doubles. **A live sponsor run has not yet been verified.** Development assistance from Codex does not count as an in-product sponsor integration.
+The browser workflow defaults to local rules and local Python. Optional OpenAI Responses and Agent37 execution adapters are connected to both the CLI and browser review flow, and tested with explicit test doubles. **A live sponsor run has not yet been verified.** Development assistance from Codex does not count as an in-product sponsor integration.
 
 The [70-second walkthrough](docs/demo.mp4) uses actual app captures, synthetic data and an explicitly illustrative review decision. Its [matching evidence bundle](demo/browser-reviewed/evidence.zip) contains the exact shown result. See [the verification report](TEST-REPORT.txt) and [integration status](INTEGRATION-STATUS.json).
 
@@ -100,7 +100,19 @@ The synthetic fixture can exercise both adapters through the CLI:
 python -m intakeproof demo --planner openai --executor agent37 --free-access-verified --out live-candidate
 ```
 
-Review that candidate's `recipe.json` before using `--approve-mapping`. Sending a custom input additionally requires `--allow-external-data`. The browser interface currently stays local; live adapters are CLI-only. The OpenAI planner makes at most two proposals. Each Agent37 run checks the supplied instance, uploads three files, executes once and fetches one result; there is no blind retry after a timeout.
+Review that candidate's `recipe.json` before using `--approve-mapping`. Sending a custom input through the CLI additionally requires `--allow-external-data`.
+
+The same providers can run through the browser review interface:
+
+```console
+python -m intakeproof serve --planner openai --executor agent37 --free-access-verified --max-provider-jobs 3
+```
+
+Provider-enabled browser mode accepts only the byte-identical bundled synthetic example. A filename or a `synthetic` label cannot bypass this check. Exploring the example sends its headers and two bounded sample records to OpenAI. Approving the mapping or saving a correction sends the example, mapping and recorded review decisions to Agent37; keep those decisions synthetic. Credentials are supplied only through the local process environment, never the browser.
+
+There are at most three planning jobs and three execution jobs per server process; `--max-provider-jobs` can lower either limit together to one or two. Failed attempts count, and loading another source session cannot reset the limits. Each planning job makes at most two proposals. Each Agent37 execution checks the supplied instance, uploads three files, executes once and fetches one result; there is no blind retry after a timeout. These request caps do not replace verification of free account access or cap instance storage costs.
+
+The runtime panel distinguishes configuration, a local preview, explicit test doubles and a completed provider receipt. Inspection never starts remote execution. A failed model proposal preserves the source and offers explicit manual mapping; that decision retains the failure in its audit. An unverified failed proposal has a null live-call flag, because a timeout does not prove that no request reached the service. A failed execution does not save a replacement result or relabel a local fallback as cloud success. Any earlier download still refers to its original successful result.
 
 Remote temporary files remain on the supplied instance. Export required evidence and clean up only resources created for this entry. Stopping or sleeping an Agent37 instance may still incur storage use; the tool does not delete pre-existing resources automatically.
 

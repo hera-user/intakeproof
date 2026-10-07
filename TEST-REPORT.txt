@@ -2,17 +2,22 @@ IntakeProof local verification — 7 October 2026
 
 Command: python -m unittest discover -s tests -v
 Runtime: Python 3.12.14 on Windows
-Latest complete suite: 34 tests passed in 1.956 seconds.
+Latest complete suite: 41 tests passed in 5.049 seconds.
 
 Coverage:
 - Eighteen deterministic-engine and planner behavior tests.
 - Six local HTTP workflow, export, session-history and request-boundary tests.
 - Seven provider-adapter tests using explicit HTTP doubles, including actual execution of the trusted worker in a temporary local directory.
-- Three CLI behavior tests, including original preservation and refusal of live mode without verified free access.
+- Six HTTP provider-workflow tests using explicit doubles: reviewed correction/export, byte-level synthetic-only boundary, preserved model failure, remote failure without fallback, concurrent process-wide caps, and required mapping approval.
+- Four CLI behavior tests, including original preservation and refusal of live mode without verified free access for both commands and the browser server.
 
 The Windows request-rejection path initially exposed a connection reset when a POST body remained unread. The handler now reads the bounded body before issuing its rejection and has a request timeout. The complete suite passed after that fix.
 
 Browser verification exercised the real local UI: load synthetic data; approve mapping; obtain 4 accepted and 6 held; record one explicitly synthetic date correction; obtain 5 accepted and 5 held; download the evidence ZIP. Original bytes and every ZIP manifest hash were verified. No browser console warnings or errors were observed in the checked workflow.
+
+The provider-enabled browser flow was additionally exercised with explicit simulated transports: mapping proposal; local preview; worker execution; an illustrative correction from 4/6 to 5/5; and an attempted third execution rejected at the configured two-job cap. The prior result and download remained available, with visible failure and simulation labels. No genuine provider connection was used. The current default local browser mode was also retested after wiring the provider path.
+
+The first expanded test run had one fixture-mutation assertion failure because the test used the wrong case for a header. Correcting the test to modify the actual header produced the passing suite above. Browser verification found a stale cached script after restart; a versioned script URL restored initialization, and the local workflow then passed.
 
 Video: seven actual app captures, paced into a 70-second H.264 walkthrough. It is labelled synthetic data, local execution and paced walkthrough. It is not a continuous screen recording or a live cloud demonstration.
 

@@ -12,26 +12,82 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
 
-from .engine import CONTRACT, MAX_BYTES, IntakeError, execute, import_csv, json_bytes, make_bundle, parse_source, report_html
+from .engine import CONTRACT, MAX_BYTES, IntakeError, execute, import_csv, json_bytes, make_bundle, parse_source, report_html, sha256
 from .planner import manual_recipe, plan
 
 ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web"
+SYNTHETIC_SHA256 = "96c98a6f890f86904a0395f217412170a00732e16bcb4e03bd4a99a0867fa105"
+
+
+class BrowserRuntime:
+    """Process-wide attempt limits; factories never come from browser input."""
+
+    def __init__(self, *, planner_factory=None, executor_factory=None, max_jobs=3):
+        if type(max_jobs) is not int or not 1 <= max_jobs <= 3:
+            raise IntakeError("job_limit", "Choose one to three provider jobs per process.")
+        self.planner_factory = planner_factory
+        self.executor_factory = executor_factory
+        self.max_jobs = max_jobs
+        self.attempts = {"planner": 0, "executor": 0}
+        self.lock = threading.Lock()
+
+    @property
+    def external(self):
+        return self.planner_factory is not None or self.executor_factory is not None
+
+    def check_source(self, raw):
+        if self.external and sha256(raw) != SYNTHETIC_SHA256:
+            raise IntakeError("synthetic_only", "Provider-enabled browser mode accepts only the exact bundled synthetic example. No source was sent.")
+
+    def reserve(self, role):
+        with self.lock:
+            if self.attempts[role] >= self.max_jobs:
+                raise IntakeError("provider_job_limit", f"The process-wide {role} limit was reached. Failed attempts count; loading another file does not reset it.")
+            self.attempts[role] += 1
+
+    def info(self):
+        with self.lock:
+            return {"version": "0.2.0", "contract": CONTRACT,
+                    "planner": "openai_configured" if self.planner_factory else "local_rules",
+                    "executor": "agent37_configured" if self.executor_factory else "local",
+                    "live_model_call": False, "agent37_verified": False,
+                    "verification_scope": "Configuration only; completed runs have their own receipts",
+                    "network_transmission": self.external, "synthetic_only": self.external,
+                    "job_limit_per_provider": self.max_jobs, "attempted_jobs": dict(self.attempts)}
+
+    def propose(self, raw, delimiter):
+        self.check_source(raw)
+        provider = None
+        if self.planner_factory:
+            self.reserve("planner")
+            provider = self.planner_factory()
+        return plan(raw, provider=provider, delimiter=delimiter)
+
+    def run(self, raw, recipe, **kwargs):
+        self.check_source(raw)
+        if self.executor_factory:
+            if kwargs.get("mapping_approved") is not True:
+                raise IntakeError("mapping_review", "Approve the mapping before requesting provider execution.")
+            self.reserve("executor")
+            return self.executor_factory().run(raw, recipe, **kwargs)
+        return execute(raw, recipe, **kwargs)
 
 
 class AppState:
-    def __init__(self):
+    def __init__(self, runtime):
         self.token = secrets.token_urlsafe(32)
         self.sessions = {}
         self.runs = {}
         self.lock = threading.RLock()
+        self.runtime = runtime
 
 
-def make_server(port: int = 8765) -> ThreadingHTTPServer:
-    state = AppState()
+def make_server(port: int = 8765, *, runtime=None) -> ThreadingHTTPServer:
+    state = AppState(runtime or BrowserRuntime())
 
     class Handler(BaseHTTPRequestHandler):
-        server_version = "IntakeProof/0.1"
+        server_version = "IntakeProof/0.2"
 
         def setup(self):
             super().setup()
@@ -71,7 +127,7 @@ def make_server(port: int = 8765) -> ThreadingHTTPServer:
                 mime = "text/javascript; charset=utf-8" if path.endswith(".js") else "text/css; charset=utf-8"
                 return self.send(200, (WEB / path[1:]).read_bytes(), mime)
             if path == "/api/info":
-                return self.send(200, json_bytes({"version": "0.1.0", "contract": CONTRACT, "planner": "local_rules", "live_model_call": False, "executor": "local", "agent37_verified": False, "network_transmission": False}))
+                return self.send(200, json_bytes(state.runtime.info()))
             if path == "/api/demo":
                 return self.send(200, json_bytes({"filename": "supplier-drift.synthetic.csv", "synthetic": True, "source_base64": base64.b64encode((ROOT / "examples/supplier-drift.csv").read_bytes()).decode("ascii")}))
             if path.startswith("/api/download/"):
@@ -121,6 +177,7 @@ def make_server(port: int = 8765) -> ThreadingHTTPServer:
                         raw = base64.b64decode(encoded, validate=True)
                     except (binascii.Error, ValueError) as exc:
                         raise IntakeError("source_encoding", "Invalid file transfer encoding.") from exc
+                    state.runtime.check_source(raw)
                     delimiter = body.get("delimiter", "auto")
                     source = parse_source(raw, delimiter)
                     filename = body.get("filename", "source.csv")
@@ -128,12 +185,12 @@ def make_server(port: int = 8765) -> ThreadingHTTPServer:
                         raise IntakeError("filename", "Invalid display filename.")
                     recipe, receipt, planning_error, preview = None, None, None, None
                     try:
-                        recipe, receipt = plan(raw, delimiter=source["delimiter"])
+                        recipe, receipt = state.runtime.propose(raw, source["delimiter"])
                         preview = execute(raw, recipe, delimiter=source["delimiter"], planner_receipt=receipt)
                     except IntakeError as exc:
                         planning_error = {"code": exc.code, "message": str(exc)}
                     session_id = str(uuid.uuid4())
-                    session = {"raw": raw, "source": source, "recipe": recipe, "receipt": receipt, "last_run_id": None, "run_ids": [], "synthetic": body.get("synthetic") is True}
+                    session = {"raw": raw, "source": source, "recipe": recipe, "receipt": receipt, "planning_error": planning_error, "last_run_id": None, "run_ids": [], "synthetic": sha256(raw) == SYNTHETIC_SHA256 or body.get("synthetic") is True}
                     with state.lock:
                         if len(state.sessions) >= 4:
                             oldest = next(iter(state.sessions))
@@ -154,11 +211,17 @@ def make_server(port: int = 8765) -> ThreadingHTTPServer:
                         columns = body.get("columns")
                         recipe = manual_recipe(session["source"], columns)
                         receipt = session["receipt"] or {"mode": "manual", "live_model_call": False}
+                        if session["planning_error"]:
+                            receipt = {**receipt, "failed_proposal": session["planning_error"]}
+                            if state.runtime.planner_factory:
+                                # A failed proposal is not evidence that no request
+                                # reached the service (for example after a timeout).
+                                receipt.update(live_model_call=None, call_outcome="Unverified after failed proposal; attempted job counted")
                         if session["recipe"] and columns == {f: r["source"] for f, r in session["recipe"]["mapping"].items()}:
                             recipe = session["recipe"]
                         else:
                             receipt = {**receipt, "mapping_changed_by_reviewer": True}
-                        result = execute(session["raw"], recipe, delimiter=session["source"]["delimiter"], decisions=body.get("decisions"), mapping_approved=body.get("mapping_approved") is True, planner_receipt=receipt, parent_run_id=session["last_run_id"])
+                        result = state.runtime.run(session["raw"], recipe, delimiter=session["source"]["delimiter"], decisions=body.get("decisions"), mapping_approved=body.get("mapping_approved") is True, planner_receipt=receipt, parent_run_id=session["last_run_id"])
                         result["demonstration"] = {"synthetic": session["synthetic"], "label_source": "User selection or bundled original synthetic fixture"}
                         session["last_run_id"] = result["run_id"]
                         session["run_ids"].append(result["run_id"])
@@ -177,10 +240,13 @@ def make_server(port: int = 8765) -> ThreadingHTTPServer:
     return server
 
 
-def serve(port=8765):
-    server = make_server(port)
+def serve(port=8765, *, runtime=None):
+    server = make_server(port, runtime=runtime)
     print(f"IntakeProof is running at http://127.0.0.1:{server.server_port}", flush=True)
-    print("Local rules and local execution. No live sponsor integration is claimed. Ctrl+C stops the server.", flush=True)
+    if server.app_state.runtime.external:
+        print("Provider mode configured for the bundled synthetic example only. Completed calls require their own receipts. Ctrl+C stops the server.", flush=True)
+    else:
+        print("Local rules and local execution. No live sponsor integration is claimed. Ctrl+C stops the server.", flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
