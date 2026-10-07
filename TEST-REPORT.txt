@@ -1,0 +1,19 @@
+IntakeProof local verification — 7 October 2026
+
+Command: python -m unittest discover -s tests -v
+Runtime: Python 3.12.14 on Windows
+Latest complete suite: 34 tests passed in 1.956 seconds.
+
+Coverage:
+- Eighteen deterministic-engine and planner behavior tests.
+- Six local HTTP workflow, export, session-history and request-boundary tests.
+- Seven provider-adapter tests using explicit HTTP doubles, including actual execution of the trusted worker in a temporary local directory.
+- Three CLI behavior tests, including original preservation and refusal of live mode without verified free access.
+
+The Windows request-rejection path initially exposed a connection reset when a POST body remained unread. The handler now reads the bounded body before issuing its rejection and has a request timeout. The complete suite passed after that fix.
+
+Browser verification exercised the real local UI: load synthetic data; approve mapping; obtain 4 accepted and 6 held; record one explicitly synthetic date correction; obtain 5 accepted and 5 held; download the evidence ZIP. Original bytes and every ZIP manifest hash were verified. No browser console warnings or errors were observed in the checked workflow.
+
+Video: seven actual app captures, paced into a 70-second H.264 walkthrough. It is labelled synthetic data, local execution and paced walkthrough. It is not a continuous screen recording or a live cloud demonstration.
+
+No live Agent37 or OpenAI call is covered by this report. API doubles are never counted as completed sponsor integrations.

@@ -1,0 +1,27 @@
+{
+  "contract_id": "shipment.v1",
+  "header_sha256": "fee3c36ab93c0776546b49a0a67af5dda9cf3e4dc29c2ed5ba15f4cc18dea4ba",
+  "mapping": {
+    "line_id": {
+      "evidence": "Header 'Shipment ref' matches a documented line_id alias. Meaning still needs reviewer confirmation.",
+      "operation": "identity",
+      "source": "Shipment ref"
+    },
+    "quantity": {
+      "evidence": "Header 'Units' matches a documented quantity alias. Meaning still needs reviewer confirmation.",
+      "operation": "integer",
+      "source": "Units"
+    },
+    "ship_date": {
+      "evidence": "Header 'Dispatch date' matches a documented ship_date alias. Meaning still needs reviewer confirmation.",
+      "operation": "date",
+      "source": "Dispatch date"
+    },
+    "sku": {
+      "evidence": "Header 'Product code' matches a documented sku alias. Meaning still needs reviewer confirmation.",
+      "operation": "identity",
+      "source": "Product code"
+    }
+  },
+  "version": 1
+}

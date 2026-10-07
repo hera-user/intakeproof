@@ -1,0 +1,20 @@
+{
+  "description": "Original synthetic fixture; expected outcomes specified before engine implementation on 2026-10-07 after organizer early-start permission.",
+  "input_records": 10,
+  "accepted_record_ids": ["r000001", "r000002", "r000007", "r000010"],
+  "review_record_ids": ["r000003", "r000004", "r000005", "r000006", "r000008", "r000009"],
+  "accepted_values": [
+    {"line_id": "000101", "sku": "000072", "quantity": "12", "ship_date": "2026-10-09"},
+    {"line_id": "000102", "sku": "SKU-B2", "quantity": "4", "ship_date": "2026-10-19"},
+    {"line_id": "000107", "sku": "SKU-G7", "quantity": "7", "ship_date": "2026-10-12"},
+    {"line_id": "000110", "sku": "SKU-J0", "quantity": "10", "ship_date": "2026-10-22"}
+  ],
+  "review_reason_codes": {
+    "r000003": ["ambiguous_date"],
+    "r000004": ["invalid_date"],
+    "r000005": ["duplicate_line_id"],
+    "r000006": ["duplicate_line_id"],
+    "r000008": ["invalid_identifier"],
+    "r000009": ["required"]
+  }
+}

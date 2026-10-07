@@ -1,0 +1,3 @@
+# Evidence hashes include exact bytes. Never normalize originals or exported files.
+* -text
+*.csv whitespace=cr-at-eol

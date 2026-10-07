@@ -1,0 +1,14 @@
+{
+  "method": "Paced walkthrough made from screenshots of actual local browser runs. These are not simulated model calls or a continuous screen recording.",
+  "synthetic_data": true,
+  "live_provider_calls": 0,
+  "scenes": [
+    {"image": "01-start.jpg", "seconds": 7, "caption": "IntakeProof: repair supplier format drift, with every record accounted for."},
+    {"image": "02-mapping.jpg", "seconds": 10, "caption": "Review a bounded mapping. No arbitrary code. No silent date-locale guesses."},
+    {"image": "03-initial-result.jpg", "seconds": 11, "caption": "Actual result: 10 input = 4 accepted + 6 held. Both duplicate references stay in review."},
+    {"image": "04-review-date.jpg", "seconds": 10, "caption": "03/04/2026 has two valid meanings. The original remains visible for review."},
+    {"image": "05-decision.jpg", "seconds": 10, "caption": "Record a reasoned correction. This example decision is explicitly synthetic."},
+    {"image": "06-revalidated.jpg", "seconds": 10, "caption": "Revalidate: 5 accepted + 5 held. All 10 accepted identifier values stay unchanged."},
+    {"image": "07-evidence.jpg", "seconds": 12, "caption": "Export the import, originals, unresolved cases, audit, recipe and verified file hashes."}
+  ]
+}

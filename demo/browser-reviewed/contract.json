@@ -1,0 +1,16 @@
+{
+  "encoding": "UTF-8, optional BOM",
+  "fields": [
+    "line_id",
+    "sku",
+    "quantity",
+    "ship_date"
+  ],
+  "id": "shipment.v1",
+  "identifiers": "1–64 ASCII letters, digits, dot, underscore, slash or hyphen; first character alphanumeric; whitespace is not silently stripped",
+  "line_id_unique": true,
+  "max_bytes": 2097152,
+  "max_records": 20000,
+  "quantity": "Unsigned base-10 integer from 0 to 1000000; surrounding whitespace may be trimmed",
+  "ship_date": "Valid calendar date, emitted as YYYY-MM-DD; ambiguous dates require an explicit review decision"
+}

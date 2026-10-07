@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="__CSRF_TOKEN__">
+  <title>IntakeProof — every record accounted for</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a href="#" class="brand" aria-label="IntakeProof home"><span class="brandmark" aria-hidden="true"><i></i><i></i><i></i></span>IntakeProof<span class="brand-dot">.</span></a>
+    <span class="top-context">SUPPLIER INTAKE / SHIPMENT V1</span>
+    <span class="status-pill"><span class="dot"></span>Local execution</span>
+  </header>
+  <div class="layout">
+    <aside class="sidebar">
+      <div><p class="eyebrow">THE HANDOFF</p>
+        <nav aria-label="Review steps">
+          <a href="#source" class="nav-step"><span>01</span>Inspect source</a>
+          <a href="#mapping" class="nav-step"><span>02</span>Review mapping</a>
+          <a href="#results" class="nav-step"><span>03</span>Resolve exceptions</a>
+          <a href="#evidence" class="nav-step"><span>04</span>Export evidence</a>
+        </nav>
+      </div>
+      <div class="sidebar-bottom">
+        <p class="eyebrow">RUNTIME RECEIPT</p>
+        <div class="runtime-row"><span>Planner</span><strong id="runtime-planner">Local rules</strong></div>
+        <div class="runtime-row"><span>Executor</span><strong id="runtime-executor">Local Python</strong></div>
+        <div class="runtime-row"><span>Agent37</span><span>Not connected</span></div>
+        <div class="runtime-row"><span>OpenAI</span><span>Not connected</span></div>
+        <p class="small muted">No live sponsor integration is claimed by this local mode.</p>
+        <div class="privacy-note"><span aria-hidden="true">⌑</span><p>Originals stay intact.<br>Files stay on this computer.</p></div>
+      </div>
+    </aside>
+    <main>
+      <section class="hero">
+        <div><p class="eyebrow">WHEN SUPPLIER FORMATS CHANGE</p><h1>A clean import.<br><em>A complete paper trail.</em></h1><p class="intro">Review the repair. Keep the originals. Know exactly<br class="wide-only"> which records are ready and which still need a decision.</p></div>
+        <div class="hero-stamp" aria-label="Input equals accepted plus review"><span>NOTHING<br>DISAPPEARS</span><div>in = ready + review</div><small>Verified for every parsed record</small></div>
+      </section>
+
+      <div id="error" role="alert" class="error-banner" hidden></div>
+      <div id="activity" aria-live="polite" class="activity" hidden></div>
+
+      <section id="source" class="card source-card">
+        <div class="section-heading"><div><p class="eyebrow">01 / SOURCE</p><h2>Start with the file that changed.</h2></div><span class="badge neutral">UTF-8 CSV · up to 2 MiB</span></div>
+        <div class="source-grid">
+          <div class="file-drop"><span class="file-icon" aria-hidden="true">↥</span><div><strong>Choose a supplier export</strong><p class="muted small">Comma, semicolon or tab. Original bytes are preserved.</p><label class="button secondary file-button" for="file-input">Choose CSV file</label><input id="file-input" type="file" accept=".csv,.tsv,text/csv,text/tab-separated-values" class="visually-hidden"></div></div>
+          <div class="demo-prompt"><span class="badge synthetic">SYNTHETIC DEMONSTRATION</span><h3>Ten records. Six exceptions.</h3><p class="small muted">Changed headers, mixed dates, duplicate references and one identifier Excel might treat as a formula.</p><button id="load-demo" class="text-button">Explore the example <span aria-hidden="true">↗</span></button></div>
+        </div>
+        <div class="source-controls"><label>Separator <select id="delimiter"><option value="auto">Detect automatically</option><option value=",">Comma</option><option value=";">Semicolon</option><option value="&#9;">Tab</option></select></label><p id="file-status" class="small muted">No source loaded.</p></div>
+        <div id="source-details" hidden><div class="source-meta"><strong id="source-name"></strong><span id="source-count" class="badge neutral"></span><span id="synthetic-badge" class="badge synthetic" hidden>Synthetic data</span></div><div class="table-scroll"><table id="source-table" class="source-table"><caption>First five original records, unchanged</caption><thead></thead><tbody></tbody></table></div></div>
+      </section>
+
+      <section id="mapping" class="card" hidden>
+        <div class="section-heading"><div><p class="eyebrow">02 / MAPPING REVIEW</p><h2>The proposal is yours to approve.</h2></div><span class="badge neutral" id="mapping-mode">Local rule proposal</span></div>
+        <p class="small muted">Only these four contract fields enter the import. Other source columns stay in the evidence bundle. A mapping explanation is evidence to review, not proof of meaning.</p>
+        <div id="mapping-fields" class="mapping-grid"></div>
+        <details class="date-policy"><summary>Date order policy <span class="muted">— no silent locale guesses</span></summary><div class="date-policy-content"><label>Date interpretation<select id="date-order"><option value="">Hold ambiguous dates for review</option><option value="DMY">Day / month / year — explicit reviewer decision</option><option value="MDY">Month / day / year — explicit reviewer decision</option></select></label><label>Evidence for this choice<input id="date-reason" type="text" maxlength="1000" placeholder="For example: supplier’s written specification says DD/MM/YYYY"></label><p class="small muted">ISO dates and values with only one valid interpretation work without a global choice. A global choice applies to the whole file.</p></div></details>
+        <div class="mapping-footer"><p id="mapping-hint" class="small muted">Review the source-to-target mapping before releasing an import.</p><button id="run" class="button primary">Approve mapping & run <span aria-hidden="true">→</span></button></div>
+      </section>
+
+      <section id="results" hidden>
+        <div class="section-heading"><div><p class="eyebrow">03 / RESULT</p><h2 id="result-title">Every record has a destination.</h2></div><span id="approval-badge" class="badge warning">Preview · mapping not approved</span></div>
+        <div class="metrics"><div class="metric"><span>INPUT RECORDS</span><strong id="input-count">0</strong><small>Logical CSV records</small></div><div class="metric accepted"><span>READY FOR IMPORT</span><strong id="accepted-count">0</strong><small>Passed the target contract</small></div><div class="metric review"><span>NEEDS A DECISION</span><strong id="review-count">0</strong><small>Preserved in the review queue</small></div></div>
+        <div class="conservation-strip"><span class="checkmark" aria-hidden="true">✓</span><div><strong id="conservation-equation"></strong><p class="small muted">Disjoint outputs. No missing record identities.</p></div><span id="identifier-summary" class="small"></span></div>
+        <div class="card review-card"><div class="section-heading"><div><h3>Review queue</h3><p class="small muted">Exceptions stay out of the import until they pass validation. Every correction keeps its original value and reason.</p></div><span id="queue-badge" class="badge warning"></span></div><div id="review-empty" class="empty-success" hidden>All records pass the contract. The original file is still included in your evidence.</div><div class="table-scroll"><table id="review-table"><thead><tr><th>Record / source lines</th><th>Reference</th><th>Unresolved evidence</th><th>Decision</th></tr></thead><tbody></tbody></table></div><p id="review-limit" class="small muted"></p></div>
+        <details class="card accepted-details"><summary><span>Accepted import preview</span><span id="accepted-badge" class="badge success"></span></summary><div class="table-scroll"><table id="accepted-table"><thead><tr><th>Source record</th><th>line_id</th><th>sku</th><th>quantity</th><th>ship_date</th></tr></thead><tbody></tbody></table></div></details>
+      </section>
+
+      <section id="evidence" class="card evidence-card" hidden>
+        <div class="section-heading"><div><p class="eyebrow">04 / THE HANDOFF</p><h2>Export the file. Keep the proof.</h2></div><span class="evidence-symbol" aria-hidden="true">↘</span></div>
+        <div class="evidence-grid"><div><p class="muted">One bundle contains the original source, import, unresolved records, recipe, full audit, readable report and file hashes.</p><div class="download-actions"><a id="download-bundle" class="button primary" download>Download evidence bundle</a><a id="download-import" class="button secondary" download>Import CSV</a></div><p id="download-scope" class="small muted"></p></div><dl class="proof-facts"><div><dt>Original SHA-256</dt><dd id="source-hash"></dd></div><div><dt>Result identity</dt><dd id="run-id"></dd></div><div><dt>Execution</dt><dd id="executor-description"></dd></div><div><dt>Review history</dt><dd id="history-description"></dd></div></dl></div>
+        <details class="audit-details"><summary>Inspect the machine-readable evidence</summary><pre id="audit-preview"></pre><a id="download-audit" class="text-button" download>Download full audit.json ↗</a></details>
+      </section>
+      <footer class="main-footer"><span>IntakeProof / built for accountable handoffs</span><span>Row conservation proves completeness, not semantic correctness.</span></footer>
+    </main>
+  </div>
+  <dialog id="correction-dialog"><form id="correction-form"><div class="section-heading"><div><p class="eyebrow">REVIEW DECISION</p><h2 id="correction-title">Resolve a record</h2></div><button type="button" id="close-dialog" class="icon-button" aria-label="Close review">×</button></div><p class="small muted">Change only the values supported by evidence. The original source remains unchanged.</p><div id="correction-fields" class="correction-fields"></div><label>Reason / evidence<textarea id="correction-reason" required maxlength="1000" rows="3" placeholder="Explain the source of the corrected value."></textarea></label><p class="small muted">This local interface records the decision; it does not authenticate reviewer identity.</p><div class="dialog-actions"><button type="button" id="cancel-dialog" class="button secondary">Cancel</button><button type="submit" class="button primary">Save decision & revalidate</button></div></form></dialog>
+</body>
+</html>

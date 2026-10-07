@@ -1,0 +1,18 @@
+{
+  "version": "0.1.0",
+  "date_utc": "2026-10-07",
+  "local_browser_workflow_verified": true,
+  "local_cli_workflow_verified": true,
+  "tests_passed": 34,
+  "openai_adapter_implemented": true,
+  "agent37_adapter_implemented": true,
+  "adapter_test_transport": "Explicit test doubles; actual trusted worker executed locally",
+  "live_openai_verified": false,
+  "live_agent37_verified": false,
+  "live_provider_calls": 0,
+  "cash_spent_usd": 0,
+  "demo": "70-second paced walkthrough of actual local app captures with synthetic data",
+  "submission_verified": false,
+  "prize_eligibility_claimed": false,
+  "development_assistance": "OpenAI Codex; not counted as in-product sponsor integration"
+}

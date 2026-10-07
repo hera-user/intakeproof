@@ -1,0 +1,300 @@
+[
+  {
+    "changes": [],
+    "disposition": "review",
+    "field_evidence": {
+      "line_id": {
+        "evidence": "Identifier preserved exactly as a string",
+        "operation": "identity",
+        "source_column": "Shipment ref"
+      },
+      "quantity": {
+        "evidence": "Exact base-10 integer; surrounding whitespace removed",
+        "operation": "integer",
+        "source_column": "Units"
+      },
+      "sku": {
+        "evidence": "Identifier preserved exactly as a string",
+        "operation": "identity",
+        "source_column": "Product code"
+      }
+    },
+    "issues": [
+      {
+        "code": "ambiguous_date",
+        "field": "ship_date",
+        "message": "Could mean 2026-04-03 or 2026-03-04; a reviewer must choose."
+      }
+    ],
+    "ordinal": 3,
+    "original": {
+      "Dispatch date": "03/04/2026",
+      "Product code": "SKU-C3",
+      "Shipment ref": "000103",
+      "Supplier note": "Date order requires review",
+      "Units": "3"
+    },
+    "physical_lines": [
+      4,
+      4
+    ],
+    "record_id": "r000003",
+    "record_sha256": "d04e3994108f73765e777fe8b2e2fc739b499b1268824dfe3db0d6b49d4b67af",
+    "values": {
+      "line_id": "000103",
+      "quantity": "3",
+      "ship_date": "03/04/2026",
+      "sku": "SKU-C3"
+    }
+  },
+  {
+    "changes": [],
+    "disposition": "review",
+    "field_evidence": {
+      "line_id": {
+        "evidence": "Identifier preserved exactly as a string",
+        "operation": "identity",
+        "source_column": "Shipment ref"
+      },
+      "quantity": {
+        "evidence": "Exact base-10 integer; surrounding whitespace removed",
+        "operation": "integer",
+        "source_column": "Units"
+      },
+      "sku": {
+        "evidence": "Identifier preserved exactly as a string",
+        "operation": "identity",
+        "source_column": "Product code"
+      }
+    },
+    "issues": [
+      {
+        "code": "invalid_date",
+        "field": "ship_date",
+        "message": "The date does not exist under either supported date order."
+      }
+    ],
+    "ordinal": 4,
+    "original": {
+      "Dispatch date": "31/02/2026",
+      "Product code": "SKU-D4",
+      "Shipment ref": "000104",
+      "Supplier note": "Impossible calendar date",
+      "Units": "2"
+    },
+    "physical_lines": [
+      5,
+      5
+    ],
+    "record_id": "r000004",
+    "record_sha256": "b20f7de6486fe1cb6508b5ba3e5b47073dc948dda8d48c1f9bb6fc6ebd0ef46c",
+    "values": {
+      "line_id": "000104",
+      "quantity": "2",
+      "ship_date": "31/02/2026",
+      "sku": "SKU-D4"
+    }
+  },
+  {
+    "changes": [],
+    "disposition": "review",
+    "field_evidence": {
+      "line_id": {
+        "evidence": "Identifier preserved exactly as a string",
+        "operation": "identity",
+        "source_column": "Shipment ref"
+      },
+      "quantity": {
+        "evidence": "Exact base-10 integer; surrounding whitespace removed",
+        "operation": "integer",
+        "source_column": "Units"
+      },
+      "ship_date": {
+        "evidence": "ISO date in source",
+        "operation": "date",
+        "source_column": "Dispatch date"
+      },
+      "sku": {
+        "evidence": "Identifier preserved exactly as a string",
+        "operation": "identity",
+        "source_column": "Product code"
+      }
+    },
+    "issues": [
+      {
+        "code": "duplicate_line_id",
+        "field": "line_id",
+        "message": "Every record with this duplicate reference is held for review."
+      }
+    ],
+    "ordinal": 5,
+    "original": {
+      "Dispatch date": "2026-10-10",
+      "Product code": "SKU-E5",
+      "Shipment ref": "000105",
+      "Supplier note": "Duplicate reference A",
+      "Units": "5"
+    },
+    "physical_lines": [
+      6,
+      6
+    ],
+    "record_id": "r000005",
+    "record_sha256": "840a0045d71f9ff1c42471f386f12a2b2be637f0d863912094607fd9c31c0f46",
+    "values": {
+      "line_id": "000105",
+      "quantity": "5",
+      "ship_date": "2026-10-10",
+      "sku": "SKU-E5"
+    }
+  },
+  {
+    "changes": [],
+    "disposition": "review",
+    "field_evidence": {
+      "line_id": {
+        "evidence": "Identifier preserved exactly as a string",
+        "operation": "identity",
+        "source_column": "Shipment ref"
+      },
+      "quantity": {
+        "evidence": "Exact base-10 integer; surrounding whitespace removed",
+        "operation": "integer",
+        "source_column": "Units"
+      },
+      "ship_date": {
+        "evidence": "ISO date in source",
+        "operation": "date",
+        "source_column": "Dispatch date"
+      },
+      "sku": {
+        "evidence": "Identifier preserved exactly as a string",
+        "operation": "identity",
+        "source_column": "Product code"
+      }
+    },
+    "issues": [
+      {
+        "code": "duplicate_line_id",
+        "field": "line_id",
+        "message": "Every record with this duplicate reference is held for review."
+      }
+    ],
+    "ordinal": 6,
+    "original": {
+      "Dispatch date": "2026-10-11",
+      "Product code": "SKU-F6",
+      "Shipment ref": "000105",
+      "Supplier note": "Duplicate reference B",
+      "Units": "6"
+    },
+    "physical_lines": [
+      7,
+      7
+    ],
+    "record_id": "r000006",
+    "record_sha256": "1a2437e94f3eb0adcbce34a44f2eae791a176ac4baeb64ead34d4a1c29b6e4ca",
+    "values": {
+      "line_id": "000105",
+      "quantity": "6",
+      "ship_date": "2026-10-11",
+      "sku": "SKU-F6"
+    }
+  },
+  {
+    "changes": [],
+    "disposition": "review",
+    "field_evidence": {
+      "line_id": {
+        "evidence": "Identifier preserved exactly as a string",
+        "operation": "identity",
+        "source_column": "Shipment ref"
+      },
+      "quantity": {
+        "evidence": "Exact base-10 integer; surrounding whitespace removed",
+        "operation": "integer",
+        "source_column": "Units"
+      },
+      "ship_date": {
+        "evidence": "ISO date in source",
+        "operation": "date",
+        "source_column": "Dispatch date"
+      }
+    },
+    "issues": [
+      {
+        "code": "invalid_identifier",
+        "field": "sku",
+        "message": "Identifier fails the narrow import contract; formula-like or whitespace values are not silently altered."
+      }
+    ],
+    "ordinal": 8,
+    "original": {
+      "Dispatch date": "2026-10-13",
+      "Product code": "=2+2",
+      "Shipment ref": "000108",
+      "Supplier note": "Formula-like identifier stays in review JSON",
+      "Units": "1"
+    },
+    "physical_lines": [
+      10,
+      10
+    ],
+    "record_id": "r000008",
+    "record_sha256": "3d75f650e6f6bb208afe4e70e220ef3c1db6cec046b52e8603801a7d3132df3b",
+    "values": {
+      "line_id": "000108",
+      "quantity": "1",
+      "ship_date": "2026-10-13",
+      "sku": "=2+2"
+    }
+  },
+  {
+    "changes": [],
+    "disposition": "review",
+    "field_evidence": {
+      "line_id": {
+        "evidence": "Identifier preserved exactly as a string",
+        "operation": "identity",
+        "source_column": "Shipment ref"
+      },
+      "ship_date": {
+        "evidence": "ISO date in source",
+        "operation": "date",
+        "source_column": "Dispatch date"
+      },
+      "sku": {
+        "evidence": "Identifier preserved exactly as a string",
+        "operation": "identity",
+        "source_column": "Product code"
+      }
+    },
+    "issues": [
+      {
+        "code": "required",
+        "field": "quantity",
+        "message": "A required value is missing."
+      }
+    ],
+    "ordinal": 9,
+    "original": {
+      "Dispatch date": "2026-10-14",
+      "Product code": "SKU-I9",
+      "Shipment ref": "000109",
+      "Supplier note": "Missing quantity",
+      "Units": ""
+    },
+    "physical_lines": [
+      11,
+      11
+    ],
+    "record_id": "r000009",
+    "record_sha256": "525c5aeeea53a45c2c0d87f0aad9cf492ba59969ee7c2bed67ca58701dedd1d2",
+    "values": {
+      "line_id": "000109",
+      "quantity": "",
+      "ship_date": "2026-10-14",
+      "sku": "SKU-I9"
+    }
+  }
+]

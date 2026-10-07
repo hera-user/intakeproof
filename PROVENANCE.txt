@@ -1,0 +1,11 @@
+IntakeProof — Build an Agent, 7 October 2026
+
+This is an original supplier-format-drift project developed in the dedicated entry workspace. The synthetic fixture and expected outcomes were written for this entry. No competitor submissions were consulted or copied.
+
+The published event schedule starts building at 21:30 UTC. Implementation began only after official Agent37 support replied at approximately 18:01 UTC that international entrants may start flexibly provided they submit in time. The original organizer-reply screenshot and receipt are retained separately by the entrant. The unchanged official submission cutoff is 23:40 UTC on 7 October 2026.
+
+OpenAI Codex assisted with design, implementation and verification. This development assistance is not represented as a verified in-product OpenAI integration.
+
+The bundled demonstration is wholly synthetic. Its review decisions are illustrative, not statements from real suppliers. There are no claims of customers, revenue, time saved, cloud API usage or prizes without their own receipts.
+
+At this version, the local browser and CLI workflow are verified. Optional live adapters are tested with explicit simulated HTTP transports, including actual local execution of the trusted worker. No Agent37 or OpenAI live-service receipt exists yet. This file does not establish a submitted hackathon entry.

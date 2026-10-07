@@ -1,0 +1,12 @@
+Shipment ref,Product code,Units,Dispatch date,Supplier note
+000101,000072,12,2026-10-09,Original synthetic shipment
+000102,SKU-B2, 4 ,19/10/2026,Unambiguous day-first date
+000103,SKU-C3,3,03/04/2026,Date order requires review
+000104,SKU-D4,2,31/02/2026,Impossible calendar date
+000105,SKU-E5,5,2026-10-10,Duplicate reference A
+000105,SKU-F6,6,2026-10-11,Duplicate reference B
+000107,SKU-G7,7,2026-10-12,"Handle, gently
+Two physical lines in one record"
+000108,=2+2,1,2026-10-13,Formula-like identifier stays in review JSON
+000109,SKU-I9,,2026-10-14,Missing quantity
+000110,SKU-J0,10,10/22/2026,Unambiguous month-first date
