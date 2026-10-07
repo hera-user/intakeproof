@@ -2,14 +2,15 @@ IntakeProof local verification — 7 October 2026
 
 Command: python -m unittest discover -s tests -v
 Runtime: Python 3.12.14 on Windows
-Latest complete suite: 41 tests passed in 5.049 seconds.
+Latest complete suite: 51 tests passed in 5.422 seconds.
 
 Coverage:
 - Eighteen deterministic-engine and planner behavior tests.
 - Six local HTTP workflow, export, session-history and request-boundary tests.
 - Seven provider-adapter tests using explicit HTTP doubles, including actual execution of the trusted worker in a temporary local directory.
 - Six HTTP provider-workflow tests using explicit doubles: reviewed correction/export, byte-level synthetic-only boundary, preserved model failure, remote failure without fallback, concurrent process-wide caps, and required mapping approval.
-- Four CLI behavior tests, including original preservation and refusal of live mode without verified free access for both commands and the browser server.
+- Five CLI behavior tests, including original preservation, refusal of unverified provider access, offline evidence verification and failure on a mismatched original-source hash.
+- Nine offline verifier tests: the published baseline and video bundles, edited imports even after rehashing, dropped records, altered review reasons and reports, separate source anchoring, duplicate/archive paths, ambiguous JSON, candidate/reviewed naming and bounded archives.
 
 The Windows request-rejection path initially exposed a connection reset when a POST body remained unread. The handler now reads the bounded body before issuing its rejection and has a request timeout. The complete suite passed after that fix.
 
@@ -22,3 +23,5 @@ The first expanded test run had one fixture-mutation assertion failure because t
 Video: seven actual app captures, paced into a 70-second H.264 walkthrough. It is labelled synthetic data, local execution and paced walkthrough. It is not a continuous screen recording or a live cloud demonstration.
 
 No live Agent37 or OpenAI call is covered by this report. API doubles are never counted as completed sponsor integrations.
+
+The offline verifier was also run as an actual CLI process against the unchanged evidence shown in the video, with the separately retained synthetic source hash. It reproduced 10 input = 5 accepted + 5 review records and emitted docs/assets/verification.json. Verification uses the current trusted deterministic engine, makes no network request, and does not authenticate provider claims or reviewer identity.

@@ -71,6 +71,26 @@ The row invariant is `input record identities = accepted identities ∪ review i
 
 Identifiers stay strings. A valid identifier keeps its leading zeros. Formula-like identifiers are held under the narrow contract, rather than being silently changed by prefixing an apostrophe. All original values remain available in JSON. HTML output is escaped.
 
+## Verify a received handoff offline
+
+The recipient can verify an evidence ZIP without starting the server or contacting any provider:
+
+```console
+python -m intakeproof verify --bundle demo/browser-reviewed/evidence.zip
+```
+
+The command checks all seven payload hashes, reparses the original CSV, replays the saved mapping and review decisions, and compares the complete lineage, accepted import, review queue, identifier evidence and readable report. It does not trust the bundle's reported row totals. Edited imports and dropped records are rejected even if someone recomputes the manifest. It reads the ZIP in memory without extracting or executing its contents. Failure returns a nonzero exit code.
+
+For a source identity check, supply the SHA-256 of the original file retained separately. For this bundled synthetic example:
+
+```console
+python -m intakeproof verify --bundle demo/browser-reviewed/evidence.zip --expected-source-sha256 96c98a6f890f86904a0395f217412170a00732e16bcb4e03bd4a99a0867fa105
+```
+
+The result should say `status: verified`, `source_anchor: matched`, and show 10 input, 5 accepted and 5 review records. The [saved verification result](docs/assets/verification.json) is reproducible with that command. For another supplier file, calculate its own hash from the separately retained original; do not copy the example hash or take the expected hash from the same bundle being checked.
+
+Verification establishes internal consistency with the installed IntakeProof engine and the recorded decisions. It cannot authenticate the author, reviewer identity or claimed provider receipts, and it does not prove semantic mapping correctness. A completely replaced, internally consistent bundle can pass without a separately trusted source hash. Limits are 32 MiB compressed and 128 MiB unpacked; only the eight expected files are accepted.
+
 ## Agent boundary
 
 The planner proposes data, never code. Each of the four targets maps to a different existing source column with one permitted operation. The validator rejects an invalid proposal and can return feedback for one repair attempt; a second invalid proposal stops the run. Mapping approval and date interpretation are separate review decisions.

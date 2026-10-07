@@ -1,9 +1,9 @@
 {
-  "version": "0.2.0",
+  "version": "0.3.0",
   "date_utc": "2026-10-07",
   "local_browser_workflow_verified": true,
   "local_cli_workflow_verified": true,
-  "tests_passed": 41,
+  "tests_passed": 51,
   "browser_provider_workflow_implemented": true,
   "browser_provider_workflow_verified_with_test_doubles": true,
   "provider_browser_input_boundary": "Exact bundled synthetic fixture only; byte hash checked before provider calls",
@@ -18,5 +18,7 @@
   "demo": "70-second paced walkthrough of actual local app captures with synthetic data",
   "submission_verified": false,
   "prize_eligibility_claimed": false,
-  "development_assistance": "OpenAI Codex; not counted as in-product sponsor integration"
+  "development_assistance": "OpenAI Codex; not counted as in-product sponsor integration",
+  "offline_bundle_verifier_implemented": true,
+  "offline_bundle_verifier_cli_verified": true
 }

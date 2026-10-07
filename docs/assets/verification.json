@@ -1,0 +1,35 @@
+{
+  "status": "verified",
+  "verification_mode": "offline_deterministic_replay",
+  "bundle_sha256": "5c196334b6428364a731971974513c3fd80c61486670e9b3487b24871d65b0dd",
+  "source_sha256": "96c98a6f890f86904a0395f217412170a00732e16bcb4e03bd4a99a0867fa105",
+  "source_anchor": "matched",
+  "run_id": "4323b59b-8540-4301-a1da-730424b23528",
+  "recorded_mapping_approval": true,
+  "summary": {
+    "input": 10,
+    "accepted": 5,
+    "review": 5,
+    "conservation_passed": true,
+    "identifier_checks": 10,
+    "identifiers_unchanged": 10,
+    "reviewed_identifier_corrections": 0
+  },
+  "import_file": "reviewed_import.csv",
+  "checks": [
+    "seven_file_hashes",
+    "source_bytes_and_lineage",
+    "row_accounting",
+    "identifier_evidence",
+    "recorded_decisions_replayed",
+    "exact_import_bytes",
+    "complete_review_queue",
+    "report_matches_audit"
+  ],
+  "limits": {
+    "provider_provenance_verified": false,
+    "reviewer_identity_verified": false,
+    "semantic_mapping_correctness_proven": false,
+    "explanation": "Internal consistency with this engine is verified. Author, provider usage and review authority are not authenticated; a separately retained original hash is needed to anchor source identity."
+  }
+}

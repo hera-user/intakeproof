@@ -45,6 +45,20 @@ class CLITests(unittest.TestCase):
         self.assertIn("No network call was made", result.stderr)
         self.assertNotIn("running at", result.stdout)
 
+    def test_verify_command_checks_published_evidence_and_fails_wrong_source_anchor(self):
+        evidence = ROOT / "docs/assets/reviewed-evidence.zip"
+        original_bytes = evidence.read_bytes()
+        result = self.call("verify", "--bundle", str(evidence))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        receipt = json.loads(result.stdout)
+        self.assertEqual(receipt["summary"]["accepted"], 5)
+        self.assertEqual(receipt["source_anchor"], "not_supplied")
+        failure = self.call("verify", "--bundle", str(evidence), "--expected-source-sha256", "0" * 64)
+        self.assertNotEqual(failure.returncode, 0)
+        self.assertEqual(failure.stdout, "")
+        self.assertNotIn("Traceback", failure.stderr)
+        self.assertEqual(evidence.read_bytes(), original_bytes)
+
 
 if __name__ == "__main__":
     unittest.main()

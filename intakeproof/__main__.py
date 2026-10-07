@@ -40,6 +40,9 @@ def browser_runtime(args):
 def main():
     parser = argparse.ArgumentParser(description="IntakeProof — reviewed supplier imports with row evidence")
     sub = parser.add_subparsers(dest="command", required=True)
+    verify = sub.add_parser("verify", help="Check an evidence ZIP offline by replaying its recorded decisions")
+    verify.add_argument("--bundle", type=Path, required=True)
+    verify.add_argument("--expected-source-sha256", help="Hash of a separately retained original file")
     web = sub.add_parser("serve", help="Start the local browser review interface")
     web.add_argument("--port", type=int, default=8765)
     provider_options(web)
@@ -57,6 +60,12 @@ def main():
         command.add_argument("--allow-external-data", action="store_true", help="Explicitly permit this input file to be sent to the selected live providers")
     args = parser.parse_args()
     try:
+        if args.command == "verify":
+            from .verify import MAX_BUNDLE_BYTES, verify_bundle
+            with args.bundle.open("rb") as stream:
+                bundle = stream.read(MAX_BUNDLE_BYTES + 1)
+            print(json.dumps(verify_bundle(bundle, expected_source_sha256=args.expected_source_sha256), indent=2))
+            return
         live_requested = args.planner == "openai" or args.executor == "agent37"
         if live_requested and not args.free_access_verified:
             raise IntakeError("free_access_unverified", "Verify free service access before enabling live mode. No network call was made.")
